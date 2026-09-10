@@ -36,7 +36,7 @@ Other releases can fail to load the plugin.
 For a project installation, copy the plugin directory to
 `.opencode/plugins/agent-presets` in your project.
 
-## Commands
+## Use
 
 Press `Ctrl+P` and search for `Presets`.
 
@@ -51,34 +51,7 @@ Press `Ctrl+P` and search for `Presets`.
 Add a preset name to `save`, `edit`, `use`, or `delete`.
 Omit the name to open a selector or a prompt.
 
-## Behavior
-
-- The plugin saves the shared preset library on the local machine.
-- Each project location has one active preset.
-- Activation applies the agent mappings.
-- Activation updates the current session model.
-- The plugin skips an absent agent and reports it.
-- An unavailable model or variant stops activation.
-- An omitted mapping keeps the configured agent preference.
-- An omitted variant removes the explicit variant.
-
-## Storage
-
-- Preset library:
-  `~/.local/state/opencode/<channel>/tui/plugin.agent-presets.library-v1.json`
-- Active preset: the `kv` table in `~/.local/share/opencode/opencode.db`
-
-## Checks
-
-```sh
-bun install --cwd .opencode
-bun run --cwd .opencode check
-bun run --cwd .opencode test
-python3 scripts/test-agent-presets.py
-```
-
-The integration check needs Python 3.
-It starts an isolated OpenCode server and uses temporary data.
-For the terminal check, install the packages in
-`scripts/preset-test-requirements.txt` and run
-`python3 scripts/test-agent-presets.py --tui`.
+Saving captures the current agent model mappings.
+Activation applies the mappings and updates the current session model.
+An absent agent is skipped and reported.
+An unavailable model or variant stops activation.
