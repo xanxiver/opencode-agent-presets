@@ -348,19 +348,24 @@ export function createPresetActions(context: PresetUiContext) {
     if (!preset) return;
     const rows = preset.mappings.map((mapping) => ({
       agent: mapping.agentID,
-      model: `${mapping.model.providerID}/${mapping.model.id}`,
+      provider: mapping.model.providerID,
+      model: mapping.model.id,
       variant: mapping.model.variant ?? "",
     }));
     const agentWidth = Math.max(5, ...rows.map((row) => row.agent.length));
+    const providerWidth = Math.max(
+      8,
+      ...rows.map((row) => row.provider.length),
+    );
     const modelWidth = Math.max(5, ...rows.map((row) => row.model.length));
     const details =
       rows.length === 0
         ? "This preset has no mappings."
         : [
-            `${"agent".padEnd(agentWidth)}  ${"model".padEnd(modelWidth)}  variant`,
+            `${"agent".padEnd(agentWidth)}  ${"provider".padEnd(providerWidth)}  ${"model".padEnd(modelWidth)}  variant`,
             ...rows.map(
               (row) =>
-                `${row.agent.padEnd(agentWidth)}  ${row.model.padEnd(modelWidth)}  ${row.variant}`,
+                `${row.agent.padEnd(agentWidth)}  ${row.provider.padEnd(providerWidth)}  ${row.model.padEnd(modelWidth)}  ${row.variant}`,
             ),
           ].join("\n");
     yield* attempt("view-preset", () =>
