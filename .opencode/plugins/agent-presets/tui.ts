@@ -346,14 +346,23 @@ export function createPresetActions(context: PresetUiContext) {
   ) {
     const preset = yield* choose(name, destination);
     if (!preset) return;
+    const rows = preset.mappings.map((mapping) => ({
+      agent: mapping.agentID,
+      model: `${mapping.model.providerID}/${mapping.model.id}`,
+      variant: mapping.model.variant ?? "",
+    }));
+    const agentWidth = Math.max(5, ...rows.map((row) => row.agent.length));
+    const modelWidth = Math.max(5, ...rows.map((row) => row.model.length));
     const details =
-      preset.mappings.length === 0
+      rows.length === 0
         ? "This preset has no mappings."
-        : preset.mappings
-            .map(
-              (mapping) => `${mapping.agentID} -> ${modelLabel(mapping.model)}`,
-            )
-            .join("\n");
+        : [
+            `${"agent".padEnd(agentWidth)}  ${"model".padEnd(modelWidth)}  variant`,
+            ...rows.map(
+              (row) =>
+                `${row.agent.padEnd(agentWidth)}  ${row.model.padEnd(modelWidth)}  ${row.variant}`,
+            ),
+          ].join("\n");
     yield* attempt("view-preset", () =>
       context.ui.dialog.alert({
         title: `Preset: ${preset.name}`,
