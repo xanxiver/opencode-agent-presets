@@ -1,0 +1,22 @@
+{
+  "name": "opencode-agent-presets",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Save and switch model presets for OpenCode agents and subagents.",
+  "exports": {
+    ".": "./server.ts",
+    "./tui": "./tui.ts",
+    "./rpc": "./rpc.ts"
+  },
+  "files": [
+    "*.ts",
+    "README.md"
+  ],
+  "dependencies": {
+    "@lingui/core": "5.9.0",
+    "@opencode-ai/client": "0.0.0-beta-19242",
+    "@opencode-ai/plugin": "0.0.0-beta-19242",
+    "@opencode-ai/schema": "0.0.0-beta-19242",
+    "effect": "4.0.0-rc.112"
+  }
+}

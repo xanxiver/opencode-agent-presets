@@ -1,0 +1,19 @@
+{
+  "name": "my-workspace",
+  "private": true,
+  "scripts": {
+    "prepare": "./scripts/prepare-effect.sh",
+    "lint": "bun run lint:deprecated && oxlint .opencode --deny-warnings",
+    "lint:deprecated": "oxlint .opencode --config .oxlintrc.deprecated.json --disable-nested-config --type-aware --allow all --deny typescript/no-deprecated",
+    "typecheck": "bun run --cwd .opencode check",
+    "check": "bun run lint && bun run typecheck",
+    "test": "bun run --cwd .opencode test",
+    "test:integration": "python3 scripts/test-agent-presets.py",
+    "test:tui": "python3 scripts/test-agent-presets.py --tui"
+  },
+  "devDependencies": {
+    "@oxlint/plugins": "1.78.0",
+    "oxlint": "1.78.0",
+    "oxlint-tsgolint": "7.0.2001"
+  }
+}
