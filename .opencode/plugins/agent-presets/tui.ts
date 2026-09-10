@@ -478,15 +478,15 @@ export function presetCommands(
   };
 
   const palette = [
-    { action: "save", title: "Presets: Save current mappings" },
-    { action: "edit", title: "Presets: Edit preset" },
-    { action: "delete", title: "Presets: Delete preset" },
-    { action: "reset", title: "Presets: Restore configured defaults" },
+    { action: "save", title: "Save current mappings" },
+    { action: "edit", title: "Edit preset" },
+    { action: "delete", title: "Delete preset" },
+    { action: "reset", title: "Restore configured defaults" },
   ] as const;
   return [
     {
       id: "agent-presets.switch",
-      title: "Presets: Switch preset",
+      title: "Switch preset",
       group: "Presets",
       palette: true,
       slash: { name: "presets" },

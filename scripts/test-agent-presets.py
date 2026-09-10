@@ -105,7 +105,7 @@ class Terminal:
             if "\x1b[6n" in chunk:
                 self.send("\x1b[1;1R")
         self.capture("failure")
-        if text == "Presets:" and "plugin failed" in "\n".join(self.screen.display):
+        if text == "Switch preset" and "plugin failed" in "\n".join(self.screen.display):
             self.send("\x1b")
             self.wait("Commands", present=False)
             self.send("/plugins")
@@ -272,7 +272,7 @@ def main():
             terminal.send("\x10")
             terminal.wait("Commands")
             terminal.send("Presets")
-            terminal.wait("Presets:")
+            terminal.wait("Switch preset")
             terminal.capture("palette-desktop")
             terminal.send("\x1b")
             terminal.wait("Commands", present=False)
@@ -317,8 +317,8 @@ def main():
 
             terminal.send("\x10")
             terminal.wait("Commands")
-            terminal.send("Presets: Save current mappings")
-            terminal.wait("Presets: Switch preset", present=False)
+            terminal.send("Save current mappings")
+            terminal.wait("Switch preset", present=False)
             terminal.send("\r")
             terminal.wait("Preset name")
             terminal.send("Palette")

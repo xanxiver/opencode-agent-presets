@@ -42,11 +42,11 @@ Search for `Presets`.
 
 | Palette action                       | Slash command                      |
 | ------------------------------------ | ---------------------------------- |
-| Presets: Switch preset               | `/presets` or `/preset use <name>` |
-| Presets: Save current mappings       | `/preset save <name>`              |
-| Presets: Edit preset                 | `/preset edit <name>`              |
-| Presets: Delete preset               | `/preset delete <name>`            |
-| Presets: Restore configured defaults | `/preset reset`                    |
+| Switch preset               | `/presets` or `/preset use <name>` |
+| Save current mappings       | `/preset save <name>`              |
+| Edit preset                 | `/preset edit <name>`              |
+| Delete preset               | `/preset delete <name>`            |
+| Restore configured defaults | `/preset reset`                    |
 
 If you omit a preset name, the command opens a selector or name prompt.
 Preset names are case-sensitive and can contain spaces.
