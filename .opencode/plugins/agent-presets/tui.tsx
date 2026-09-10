@@ -5,6 +5,7 @@ import type {
   DialogSelectOption,
   KeymapCommand,
 } from "@opencode-ai/plugin/tui/context";
+import { TextAttributes } from "@opentui/core";
 import { Effect, Schema } from "effect";
 import {
   attempt,
@@ -19,7 +20,10 @@ import { PresetsRpc } from "./rpc.ts";
 
 type Action = "use" | "save" | "edit" | "delete" | "reset" | "view";
 type Target = { location: LocationRef; sessionID?: string };
-export type PresetUiContext = Pick<Context, "storage" | "location"> & {
+export type PresetUiContext = Pick<
+  Context,
+  "storage" | "location" | "theme"
+> & {
   ui: Pick<Context["ui"], "dialog" | "toast" | "router">;
   client: Pick<Context["client"], "rpc" | "agent" | "model" | "session">;
   data: Pick<Context["data"], "location" | "session">;
@@ -358,22 +362,54 @@ export function createPresetActions(context: PresetUiContext) {
       ...rows.map((row) => row.provider.length),
     );
     const modelWidth = Math.max(5, ...rows.map((row) => row.model.length));
-    const details =
-      rows.length === 0
-        ? "This preset has no mappings."
-        : [
-            `${"agent".padEnd(agentWidth)}  ${"provider".padEnd(providerWidth)}  ${"model".padEnd(modelWidth)}  variant`,
-            ...rows.map(
-              (row) =>
-                `${row.agent.padEnd(agentWidth)}  ${row.provider.padEnd(providerWidth)}  ${row.model.padEnd(modelWidth)}  ${row.variant}`,
-            ),
-          ].join("\n");
-    yield* attempt("view-preset", () =>
-      context.ui.dialog.alert({
-        title: `Preset: ${preset.name}`,
-        message: details,
-      }),
+    const header = `${"agent".padEnd(agentWidth)}  ${"provider".padEnd(providerWidth)}  ${"model".padEnd(modelWidth)}  variant`;
+    const lines = rows.map(
+      (row) =>
+        `${row.agent.padEnd(agentWidth)}  ${row.provider.padEnd(providerWidth)}  ${row.model.padEnd(modelWidth)}  ${row.variant}`,
     );
+    const close = () => context.ui.dialog.clear();
+    context.ui.dialog.show(() => (
+      <box paddingLeft={2} paddingRight={2} gap={1}>
+        <box flexDirection="row" justifyContent="space-between">
+          <text
+            attributes={TextAttributes.BOLD}
+            fg={context.theme.text.default}
+          >
+            {`Preset: ${preset.name}`}
+          </text>
+          <text fg={context.theme.text.subdued} onMouseUp={close}>
+            esc
+          </text>
+        </box>
+        <box flexDirection="column" paddingBottom={1}>
+          <text
+            attributes={TextAttributes.BOLD}
+            fg={context.theme.text.default}
+          >
+            {header}
+          </text>
+          {lines.length === 0 ? (
+            <text fg={context.theme.text.subdued}>
+              This preset has no mappings.
+            </text>
+          ) : (
+            lines.map((line) => (
+              <text fg={context.theme.text.subdued}>{line}</text>
+            ))
+          )}
+        </box>
+        <box flexDirection="row" justifyContent="flex-end" paddingBottom={1}>
+          <box
+            paddingLeft={3}
+            paddingRight={3}
+            backgroundColor={context.theme.background.action.primary.focused}
+            onMouseUp={close}
+          >
+            <text fg={context.theme.text.action.primary.focused}>ok</text>
+          </box>
+        </box>
+      </box>
+    ));
   });
 
   const apply = Effect.fn("presets.activate")(function* (

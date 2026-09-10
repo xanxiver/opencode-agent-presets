@@ -309,7 +309,7 @@ def main():
             terminal.wait("provider")
             terminal.wait("reasoner")
             terminal.capture("view-desktop")
-            terminal.send("\r")
+            terminal.send("\x1b")
             terminal.wait("Preset: Shared", present=False)
             other = Terminal(binary, second, env, artifacts, columns=60, rows=24)
             terminals.append(other)

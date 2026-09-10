@@ -5,17 +5,21 @@
   "description": "Save and switch model presets for OpenCode agents and subagents.",
   "exports": {
     ".": "./server.ts",
-    "./tui": "./tui.ts",
+    "./tui": "./tui.tsx",
     "./rpc": "./rpc.ts"
   },
   "files": [
     "*.ts",
+    "*.tsx",
     "README.md"
   ],
   "dependencies": {
     "@opencode-ai/client": "0.0.0-beta-19242",
     "@opencode-ai/plugin": "0.0.0-beta-19242",
     "@opencode-ai/schema": "0.0.0-beta-19242",
-    "effect": "4.0.0-rc.112"
+    "@opentui/core": "0.5.10",
+    "@opentui/solid": "0.5.10",
+    "effect": "4.0.0-rc.112",
+    "solid-js": "1.9.15"
   }
 }
