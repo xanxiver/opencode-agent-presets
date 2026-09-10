@@ -1,4 +1,3 @@
-import { setupI18n } from "@lingui/core";
 import type { AgentInfo, LocationRef, ModelInfo } from "@opencode-ai/client";
 import { Plugin } from "@opencode-ai/plugin/tui";
 import type {
@@ -18,47 +17,6 @@ import {
 import type { Mapping, ModelSelection } from "./data.ts";
 import { PresetsRpc } from "./rpc.ts";
 
-const i18n = setupI18n({
-  locale: "en",
-  messages: {
-    en: {
-      presets: "Presets",
-      switch: "Presets: Switch preset",
-      save: "Presets: Save current mappings",
-      edit: "Presets: Edit preset",
-      delete: "Presets: Delete preset",
-      reset: "Presets: Restore configured defaults",
-      empty:
-        "No presets exist. Use /preset save <name> to save the current mappings.",
-      name: "Preset name",
-      active: "active",
-      mappings: "agent mappings",
-      saved: "Preset saved",
-      applied: "Preset applied",
-      removed: "Preset deleted",
-      restored: "Configured defaults restored",
-      unavailable: "Unavailable agents",
-      primary: "Primary agents",
-      subagent: "Subagents",
-      all: "Primary agents and subagents",
-      hidden: "Hidden agents",
-      agent: "Select an agent",
-      model: "Select a model",
-      variant: "Select a variant",
-      defaultModel: "Use configured default",
-      defaultVariant: "No explicit variant",
-      finish: "Save changes",
-      cancel: "Cancel",
-      overwrite: "Replace saved preset?",
-      replace: "Replace",
-      remove: "Delete",
-      confirmDelete: "Delete saved preset?",
-      failed: "The preset action failed. Check the OpenCode log.",
-      help: "Use /preset save, edit, use, delete, or reset. Add a preset name after save, edit, use, or delete.",
-    },
-  },
-});
-
 type Action = "use" | "save" | "edit" | "delete" | "reset";
 type Target = { location: LocationRef; sessionID?: string };
 export type PresetUiContext = Pick<Context, "storage" | "location"> & {
@@ -77,7 +35,10 @@ const RpcFailure = Schema.Struct({
 });
 
 function category(agent: AgentInfo): string {
-  return i18n._(agent.hidden ? "hidden" : agent.mode);
+  if (agent.hidden) return "Hidden agents";
+  if (agent.mode === "subagent") return "Subagents";
+  if (agent.mode === "primary") return "Primary agents";
+  return "Primary agents and subagents";
 }
 
 export function createPresetActions(context: PresetUiContext) {
@@ -101,7 +62,7 @@ export function createPresetActions(context: PresetUiContext) {
     );
   const toast = (message: string) =>
     context.ui.toast.show({
-      title: i18n._("presets"),
+      title: "Presets",
       message,
       variant: "success",
     });
@@ -134,8 +95,9 @@ export function createPresetActions(context: PresetUiContext) {
     if (current.presets.length === 0) {
       yield* attempt("show-empty-presets", () =>
         context.ui.dialog.alert({
-          title: i18n._("presets"),
-          message: i18n._("empty"),
+          title: "Presets",
+          message:
+            "No presets exist. Use /preset save <name> to save the current mappings.",
         }),
       );
       return;
@@ -145,17 +107,17 @@ export function createPresetActions(context: PresetUiContext) {
     );
     const selected = yield* attempt("select-preset", () =>
       context.ui.dialog.select({
-        title: i18n._("presets"),
+        title: "Presets",
         current: status.preset?.name,
         options: [...current.presets]
           .sort((a, b) => a.name.localeCompare(b.name))
           .map((preset) => ({
             title:
               preset.name === status.preset?.name
-                ? `${preset.name} (${i18n._("active")})`
+                ? `${preset.name} (active)`
                 : preset.name,
             value: preset.name,
-            description: `${preset.mappings.length} ${i18n._("mappings")}`,
+            description: `${preset.mappings.length} agent mappings`,
           })),
       }),
     );
@@ -192,7 +154,7 @@ export function createPresetActions(context: PresetUiContext) {
     const entered =
       name ??
       (yield* attempt("enter-preset-name", () =>
-        context.ui.dialog.prompt({ title: i18n._("name") }),
+        context.ui.dialog.prompt({ title: "Preset name" }),
       ));
     if (entered === undefined) return;
     const checkedName = yield* Schema.decodeUnknownEffect(PresetName)(
@@ -212,9 +174,9 @@ export function createPresetActions(context: PresetUiContext) {
     if (existing) {
       const confirmed = yield* attempt("confirm-preset-replacement", () =>
         context.ui.dialog.confirm({
-          title: i18n._("overwrite"),
+          title: "Replace saved preset?",
           message: checkedName,
-          label: { confirm: i18n._("replace"), cancel: i18n._("cancel") },
+          label: { confirm: "Replace", cancel: "Cancel" },
         }),
       );
       if (!confirmed) return;
@@ -245,7 +207,7 @@ export function createPresetActions(context: PresetUiContext) {
       mappings,
     });
     yield* write(preset, existing);
-    toast(`${i18n._("saved")}: ${preset.name}`);
+    toast(`Preset saved: ${preset.name}`);
   });
 
   const selectModel = Effect.fn("presets.select-model")(function* (
@@ -253,7 +215,7 @@ export function createPresetActions(context: PresetUiContext) {
     current?: ModelSelection,
   ) {
     const options: DialogSelectOption<ModelInfo | null>[] = [
-      { title: i18n._("defaultModel"), value: null },
+      { title: "Use configured default", value: null },
       ...models
         .filter((model) => model.enabled)
         .map((model) => ({
@@ -264,7 +226,7 @@ export function createPresetActions(context: PresetUiContext) {
         })),
     ];
     const model = yield* attempt("select-model", () =>
-      context.ui.dialog.select({ title: i18n._("model"), options }),
+      context.ui.dialog.select({ title: "Select a model", options }),
     );
     if (model === undefined || model === null) return model;
     const result: ModelSelection = {
@@ -273,7 +235,7 @@ export function createPresetActions(context: PresetUiContext) {
     };
     if (model.variants.length === 0) return result;
     const variants: DialogSelectOption<string | null>[] = [
-      { title: i18n._("defaultVariant"), value: null },
+      { title: "No explicit variant", value: null },
       ...model.variants.map((variant) => ({
         title: variant.id,
         value: variant.id,
@@ -281,7 +243,7 @@ export function createPresetActions(context: PresetUiContext) {
     ];
     const variant = yield* attempt("select-variant", () =>
       context.ui.dialog.select({
-        title: i18n._("variant"),
+        title: "Select a variant",
         options: variants,
         current:
           current?.providerID === model.providerID && current.id === model.id
@@ -314,7 +276,7 @@ export function createPresetActions(context: PresetUiContext) {
     let mappings = [...preset.mappings];
     while (true) {
       const options: DialogSelectOption<string | null>[] = [
-        { title: i18n._("finish"), value: null },
+        { title: "Save changes", value: null },
         ...agents.data.map((agent) => {
           const mapping = mappings.find((item) => item.agentID === agent.id);
           return {
@@ -323,7 +285,7 @@ export function createPresetActions(context: PresetUiContext) {
             category: category(agent),
             description: mapping
               ? modelLabel(mapping.model)
-              : i18n._("defaultModel"),
+              : "Use configured default",
           };
         }),
         ...mappings
@@ -334,13 +296,13 @@ export function createPresetActions(context: PresetUiContext) {
           .map((mapping) => ({
             title: mapping.agentID,
             value: mapping.agentID,
-            category: i18n._("unavailable"),
+            category: "Unavailable agents",
             description: modelLabel(mapping.model),
           })),
       ];
       const agentID = yield* attempt("select-agent", () =>
         context.ui.dialog.select({
-          title: `${i18n._("edit")}: ${preset.name}`,
+          title: `Edit preset: ${preset.name}`,
           options,
         }),
       );
@@ -357,7 +319,7 @@ export function createPresetActions(context: PresetUiContext) {
       mappings,
     });
     yield* write(checked, preset);
-    toast(`${i18n._("saved")}: ${preset.name}`);
+    toast(`Preset saved: ${preset.name}`);
   });
 
   const remove = Effect.fn("presets.delete")(function* (
@@ -368,14 +330,14 @@ export function createPresetActions(context: PresetUiContext) {
     if (!preset) return;
     const confirmed = yield* attempt("confirm-preset-deletion", () =>
       context.ui.dialog.confirm({
-        title: i18n._("confirmDelete"),
+        title: "Delete saved preset?",
         message: preset.name,
-        label: { confirm: i18n._("remove"), cancel: i18n._("cancel") },
+        label: { confirm: "Delete", cancel: "Cancel" },
       }),
     );
     if (!confirmed) return;
     yield* write(null, preset);
-    toast(`${i18n._("removed")}: ${preset.name}`);
+    toast(`Preset deleted: ${preset.name}`);
   });
 
   const apply = Effect.fn("presets.activate")(function* (
@@ -395,12 +357,12 @@ export function createPresetActions(context: PresetUiContext) {
     if (destination.sessionID)
       context.data.session.invalidate(destination.sessionID);
     const message = result.preset
-      ? `${i18n._("applied")}: ${result.preset.name}`
-      : i18n._("restored");
+      ? `Preset applied: ${result.preset.name}`
+      : "Configured defaults restored";
     if (result.skipped.length > 0) {
       context.ui.toast.show({
         title: message,
-        message: `${i18n._("unavailable")}: ${result.skipped.join(", ")}`,
+        message: `Unavailable agents: ${result.skipped.join(", ")}`,
         variant: "warning",
       });
     } else toast(message);
@@ -454,13 +416,16 @@ export function presetCommands(
               new PresetError({ code: "server", message: error.cause.message }),
             );
           return Effect.fail(
-            new PresetError({ code: "operation", message: i18n._("failed") }),
+            new PresetError({
+              code: "operation",
+              message: "The preset action failed. Check the OpenCode log.",
+            }),
           );
         }),
         Effect.catchTag("PresetError", (error) =>
           Effect.sync(() =>
             context.ui.toast.show({
-              title: i18n._("presets"),
+              title: "Presets",
               message: error.message,
               variant: "error",
             }),
@@ -469,8 +434,8 @@ export function presetCommands(
         Effect.catchCause(() =>
           Effect.sync(() =>
             context.ui.toast.show({
-              title: i18n._("presets"),
-              message: i18n._("failed"),
+              title: "Presets",
+              message: "The preset action failed. Check the OpenCode log.",
               variant: "error",
             }),
           ),
@@ -495,8 +460,9 @@ export function presetCommands(
     const match = /^(use|save|edit|delete|reset)(?:\s+(.+))?$/u.exec(text);
     if (!match || (match[1] === "reset" && match[2])) {
       context.ui.toast.show({
-        title: i18n._("presets"),
-        message: i18n._("help"),
+        title: "Presets",
+        message:
+          "Use /preset save, edit, use, delete, or reset. Add a preset name after save, edit, use, or delete.",
         variant: "error",
       });
       return Promise.resolve();
@@ -511,11 +477,17 @@ export function presetCommands(
     );
   };
 
+  const palette = [
+    { action: "save", title: "Presets: Save current mappings" },
+    { action: "edit", title: "Presets: Edit preset" },
+    { action: "delete", title: "Presets: Delete preset" },
+    { action: "reset", title: "Presets: Restore configured defaults" },
+  ] as const;
   return [
     {
       id: "agent-presets.switch",
-      title: i18n._("switch"),
-      group: i18n._("presets"),
+      title: "Presets: Switch preset",
+      group: "Presets",
       palette: true,
       slash: { name: "presets" },
       enabled: () => !state.busy,
@@ -524,15 +496,15 @@ export function presetCommands(
     {
       id: "agent-presets.command",
       slash: { name: "preset", arguments: true },
-      title: i18n._("presets"),
+      title: "Presets",
       enabled: () => !state.busy,
       run: dispatch,
     },
-    ...(["save", "edit", "delete", "reset"] satisfies Action[]).map(
-      (action): KeymapCommand => ({
+    ...palette.map(
+      ({ action, title }): KeymapCommand => ({
         id: `agent-presets.${action}`,
-        title: i18n._(action),
-        group: i18n._("presets"),
+        title,
+        group: "Presets",
         palette: true,
         enabled: () => !state.busy,
         run: () => run(action),

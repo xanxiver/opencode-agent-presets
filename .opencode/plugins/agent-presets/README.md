@@ -101,7 +101,7 @@ The plugin does not synchronize the library between machines.
 The server uses the native Effect plugin API and durable plugin storage.
 The TUI uses OpenCode dialogs, command registration, and durable TUI storage.
 The RPC contract uses portable Standard Schema validators backed by Effect schemas.
-UI messages use Lingui.
+The TUI uses plain message strings.
 
 OpenCode loads agent configuration after package plugins.
 The plugin observes `plugin.updated` and registers its model transform after that configuration.
