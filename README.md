@@ -42,13 +42,14 @@ Press `Ctrl+P` and search for `Presets`.
 
 | Palette action | Slash command |
 | --- | --- |
+| View preset | `/preset view <name>` |
 | Switch preset | `/presets` or `/preset use <name>` |
 | Save current mappings | `/preset save <name>` |
 | Edit preset | `/preset edit <name>` |
 | Delete preset | `/preset delete <name>` |
 | Restore configured defaults | `/preset reset` |
 
-Add a preset name to `save`, `edit`, `use`, or `delete`.
+Add a preset name to `view`, `save`, `edit`, `use`, or `delete`.
 Omit the name to open a selector or a prompt.
 
 Saving captures the current agent model mappings.

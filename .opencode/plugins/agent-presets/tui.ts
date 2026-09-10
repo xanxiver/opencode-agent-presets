@@ -17,7 +17,7 @@ import {
 import type { Mapping, ModelSelection } from "./data.ts";
 import { PresetsRpc } from "./rpc.ts";
 
-type Action = "use" | "save" | "edit" | "delete" | "reset";
+type Action = "use" | "save" | "edit" | "delete" | "reset" | "view";
 type Target = { location: LocationRef; sessionID?: string };
 export type PresetUiContext = Pick<Context, "storage" | "location"> & {
   ui: Pick<Context["ui"], "dialog" | "toast" | "router">;
@@ -340,6 +340,28 @@ export function createPresetActions(context: PresetUiContext) {
     toast(`Preset deleted: ${preset.name}`);
   });
 
+  const view = Effect.fn("presets.view")(function* (
+    name: string | undefined,
+    destination: Target,
+  ) {
+    const preset = yield* choose(name, destination);
+    if (!preset) return;
+    const details =
+      preset.mappings.length === 0
+        ? "This preset has no mappings."
+        : preset.mappings
+            .map(
+              (mapping) => `${mapping.agentID} -> ${modelLabel(mapping.model)}`,
+            )
+            .join("\n");
+    yield* attempt("view-preset", () =>
+      context.ui.dialog.alert({
+        title: `Preset: ${preset.name}`,
+        message: details,
+      }),
+    );
+  });
+
   const apply = Effect.fn("presets.activate")(function* (
     preset: Preset | null,
     destination: Target,
@@ -380,6 +402,8 @@ export function createPresetActions(context: PresetUiContext) {
         return yield* edit(name, destination);
       case "delete":
         return yield* remove(name, destination);
+      case "view":
+        return yield* view(name, destination);
       case "reset":
         return yield* apply(null, destination);
       case "use": {
@@ -457,18 +481,18 @@ export function presetCommands(
       .trim()
       .replace(/^\/(?:preset|presets)(?:\s+|$)/u, "");
     if (!text) return run("use");
-    const match = /^(use|save|edit|delete|reset)(?:\s+(.+))?$/u.exec(text);
+    const match = /^(use|save|edit|delete|reset|view)(?:\s+(.+))?$/u.exec(text);
     if (!match || (match[1] === "reset" && match[2])) {
       context.ui.toast.show({
         title: "Presets",
         message:
-          "Use /preset save, edit, use, delete, or reset. Add a preset name after save, edit, use, or delete.",
+          "Use /preset view, save, edit, use, delete, or reset. Add a preset name after view, save, edit, use, or delete.",
         variant: "error",
       });
       return Promise.resolve();
     }
     return Schema.decodeUnknownEffect(
-      Schema.Literals(["use", "save", "edit", "delete", "reset"]),
+      Schema.Literals(["use", "save", "edit", "delete", "reset", "view"]),
     )(match[1]).pipe(
       Effect.flatMap((action) =>
         Effect.promise(() => run(action, match[2]?.trim())),
@@ -478,6 +502,7 @@ export function presetCommands(
   };
 
   const palette = [
+    { action: "view", title: "View preset" },
     { action: "save", title: "Save current mappings" },
     { action: "edit", title: "Edit preset" },
     { action: "delete", title: "Delete preset" },

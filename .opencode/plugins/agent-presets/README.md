@@ -40,8 +40,9 @@ Run `bun install` in the copied directory.
 Press `Ctrl+P` to open the command palette.
 Search for `Presets`.
 
-| Palette action                       | Slash command                      |
-| ------------------------------------ | ---------------------------------- |
+| Palette action              | Slash command                      |
+| --------------------------- | ---------------------------------- |
+| View preset                 | `/preset view <name>`              |
 | Switch preset               | `/presets` or `/preset use <name>` |
 | Save current mappings       | `/preset save <name>`              |
 | Edit preset                 | `/preset edit <name>`              |
